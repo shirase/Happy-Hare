@@ -966,7 +966,7 @@ copy_config_files() {
             # by default set internally in Happy Hare based on vendor and version settings but
             # can be overridden.  This set also includes a couple of hidden test parameters.
             supplemental_params="cad_gate0_pos cad_gate_width cad_bypass_offset cad_last_gate_offset cad_block_width cad_bypass_block_width cad_bypass_block_delta gate_parking_distance encoder_default_resolution"
-            hidden_params="virtual_selector homing_extruder test_random_failures"
+            hidden_params="virtual_selector virtual_servo homing_extruder test_random_failures"
             for var in $(set | grep '^_param_' | cut -d'=' -f1); do
                 param=${var#_param_}
                 for item in ${supplemental_params} ${hidden_params}; do

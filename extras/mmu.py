@@ -535,6 +535,7 @@ class Mmu:
         # Hidden feature development
         self.homing_extruder = config.getint('homing_extruder', 1, minval=0, maxval=1) # Special MMU homing extruder or klipper default
         self.virtual_selector = bool(config.getint('virtual_selector', 0, minval=0, maxval=1))
+        self.virtual_servo = bool(config.getint('virtual_servo', 0, minval=0, maxval=1))
 
         # The following lists are the defaults (when reset) and will be overriden by values in mmu_vars.cfg...
 
@@ -1954,6 +1955,9 @@ class Mmu:
             self._log_info("Servo angle unknown")
 
     def _servo_down(self, buzz_gear=True):
+        if self.virtual_servo:
+            self._select_gate_action(self.gate_selected)
+            return
         if self.gate_selected == self.TOOL_GATE_BYPASS: return
         if self.servo_state == self.SERVO_DOWN_STATE: return
         self._log_debug("Setting servo to down (filament drive) position at angle: %d" % self.servo_angles['down'])
@@ -1969,6 +1973,7 @@ class Mmu:
         self.servo_state = self.SERVO_DOWN_STATE
 
     def _servo_move(self): # Position servo for selector movement
+        if self.virtual_servo: return
         if self.servo_state == self.SERVO_MOVE_STATE: return
         self._log_debug("Setting servo to move (filament hold) position at angle: %d" % self.servo_angles['move'])
         if self.servo_angle != self.servo_angles['move']:
@@ -1979,6 +1984,9 @@ class Mmu:
             self.servo_state = self.SERVO_MOVE_STATE
 
     def _servo_up(self, measure=False):
+        if self.virtual_servo:
+            self._select_gate_action(self.TOOL_GATE_BYPASS)
+            return
         if self.servo_state == self.SERVO_UP_STATE: return 0.
         self._log_debug("Setting servo to up (filament released) position at angle: %d" % self.servo_angles['up'])
         delta = 0.
@@ -5277,6 +5285,9 @@ class Mmu:
             self._set_gate_selected(gate)
             return
 
+        self._select_gate_action(gate)
+
+    def _select_gate_action(self, gate):
         with self._wrap_action(self.ACTION_SELECTING):
             self._servo_move()
             if gate == self.TOOL_GATE_BYPASS:
